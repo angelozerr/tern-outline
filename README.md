@@ -6,7 +6,7 @@ tern-outline
 
 # Usage
 
-[tern-outline](https://github.com/angelozerr/tern-outline) can be used to display the outline of a JavaScript file. 
+[tern-outline](https://github.com/angelozerr/tern-outline) is a [tern plugin](http://ternjs.net/) which can be used to display the outline of a JavaScript file. 
 
 # Editors / IDE
 
