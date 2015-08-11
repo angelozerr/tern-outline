@@ -14,7 +14,9 @@ tern-outline
 
 ## Eclipse
 
-[Tern Explorer View](https://github.com/angelozerr/tern.java/wiki/Tern-Outline-support) is filled with tern-outline.
+[Tern Explorer View](https://github.com/angelozerr/tern.java/wiki/Tern-Outline-support) is filled with tern-outline : 
+
+![Tern Explorer View](https://github.com/angelozerr/tern-outline/wiki/images/EclipseIDE_TernExplorer.png)
 
 ## Other editors
 
