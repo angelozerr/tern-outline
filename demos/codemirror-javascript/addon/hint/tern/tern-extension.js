@@ -120,6 +120,9 @@
     if (defaultServer == null) {
       var plugins = {};
       var state = cm.state.ternExt;
+      if (!state && cm.options && cm.options.ternWith) {
+        state = cm.state.ternExt = new TernState(cm, parseOptions(cm.options.ternWith));
+      }
       if (state && state.options.plugins) {
         plugins = state.options.plugins;
       }
