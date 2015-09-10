@@ -13,8 +13,8 @@
     "test": "node ./test/all.js"
   },  
   "dependencies": {
-    "tern": ">=0.13.0",
-    "acorn": "^2.1.0"
+    "tern": "^0.15.0",
+    "acorn": "^2.4.0"
   },
   "devDependencies": { 
     "test": ">=0.0.5",

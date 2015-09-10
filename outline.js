@@ -99,8 +99,7 @@
       var fn = addChild(node, type, parent);
       if (!node.id) fn.name = "function";
       parent = fn.children = [];
-      var scope = {parent: parent, scope: node.body.scope};
-      //var scope = node.body.scope;
+      var scope = {parent: parent, scope: node.scope};
       if (node.id) c(node.id, scope);
       for (var i = 0; i < node.params.length; ++i)
         c(node.params[i], scope);
