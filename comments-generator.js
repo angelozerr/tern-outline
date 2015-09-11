@@ -88,7 +88,7 @@
     }
   }
   
-  tern.registerPlugin("outline", function(server, options) {
+  tern.registerPlugin("comments-generator", function(server, options) {
     return {};
   });  
   
@@ -133,20 +133,76 @@
   //   infer.fullVisitor
   var base = scopeVisitor;
   
-  tern.defineQueryType("outline", {
+  tern.defineQueryType("comments", {
     takesFile: true,
     run: function(server, query, file) {
       try {
-        var outline = [], ast = file.ast;
-        var visitors = makeVisitors(server, query, file);
-        walk.simple(ast, visitors, base, {parent: outline, scope: file.scope});
-        return {outline: outline};
+        var comments, wordStart = tern.resolvePos(file, query.end);
+        var exprAt = infer.findExpressionAround(file.ast, null, wordStart, file.scope, "FunctionDeclaration");
+        if (exprAt && exprAt.state && exprAt.state.fnType) {
+          var fnType = exprAt.state.fnType;
+          comments = fnComments(fnType);
+        }
+        return comments ? {"comments": comments} : {}
       } catch(err) {
         console.error(err.stack);
-        return {outline: []};
+        return {};
       }
     }
   });
   
+  
+  function fnComments(fnType) {
+    var argsName = fnType.argNames, t, c = "/**";
+    if (argsName) {
+      c += "\n";
+      for (var i = 0; i < argsName.length; i++) {
+        if (i > 0) c += "\n"; 
+        c+= "\t";
+        c+= "@param ";
+        t = getTypeName(fnType.args[i]);
+        if (t) {
+          c+= "{";
+          c+= t;
+          c+= "}";
+          c+= " ";
+        }
+        c+= argsName[i];
+      }
+    }
+    if (fnType.retval) {
+      c += "\n";
+      c += "\t";
+      c+= "@return ";
+      var t = getTypeName(fnType.retval);
+      if (t) {
+        c+= "{";
+        c+= t;
+        c+= "}";
+      }
+    }
+    c+= "\n";
+    c+= "**/";
+    c+= "\n";
+    return c;
+  }
+  
+  function getTypeName(type) {
+    if (!type) return;
+    if (type.types) {
+      // multiple types
+      var types = type.types, s = "";
+      for (var i = 0; i < types.length; i++) {
+        if (i > 0) s +="|";
+        var t = getTypeName(types[i]);
+        if (t) s+= t;
+      }
+      return s == "" ? null : s; 
+    }
+    if (type.name) {
+      return type.name;
+    }
+    return (type.proto) ? type.proto.name : null;
+  }
   
 })  
