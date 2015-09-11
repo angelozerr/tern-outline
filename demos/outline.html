@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Comments Generator Tern Demo</title>
+    <title>Outline Tern Demo</title>
     
     <!-- CodeMirror -->
     <link rel="stylesheet" href="../node_modules/codemirror/lib/codemirror.css">
@@ -26,6 +26,9 @@
   <script src="../node_modules/tern/lib/def.js"></script>
   <script src="../node_modules/tern/lib/comment.js"></script>
   <script src="../node_modules/tern/lib/infer.js"></script>
+  
+  <script src="../codemirror/addon/outline/tern-outline.js"></script>
+  <script src="../outline.js"></script>
   
   <!-- Official CodeMirror Tern addon -->
   <script src="../node_modules/codemirror/addon/tern/tern.js"></script>   
@@ -52,31 +55,31 @@
   <link rel="stylesheet" href="codemirror-extension/addon/hover/text-hover.css">
   <script src="codemirror-extension/addon/hover/text-hover.js"></script>
   <script src="codemirror-javascript/addon/hint/tern/tern-hover.js"></script>
-  
-  <script src="../codemirror/addon/comments-generator/tern-comments-generator.js"></script>
-  <script src="../comments-generator.js"></script>
-  
-  
+    		          
+    <link rel="stylesheet" href="../node_modules/codemirror/doc/docs.css">
   </head>
   <body>
     
-    <h1>Demo with Comments Generator Tern plugin </h1>
-	<p>See <a href="https://github.com/angelozerr/tern-comments-generator">https://github.com/angelozerr/tern-comments-generator</a> for more infos.</p>  
+    <h1>Demo with Outline Tern plugin </h1>
+	<p>See <a href="https://github.com/angelozerr/tern-outline">https://github.com/angelozerr/tern-outline</a> for more infos.</p>  
     <form>
-    Select the cursor before a function and do "Ctrl+M" to generate JSDoc.
+    
     <table style="width: 100%;height: 500px">
     	<tr>
     		<td valign="top" style="width: 50%">
-<textarea id="code" name="code">function f(a, b) {
-  if ( a > b) return 0;
-  if ( a < b) return true;
-  //return "";
+<textarea id="code" name="code">var a, b, ;
+function f() {
 };
 
-f(5, "");
-f("", "");
-
+var g = function() {
+  var g1;
+}
 </textarea>    		
+    		</td>
+    		<td valign="top">
+    			<textarea id="outline" style="width:300px;height:100%" >
+    			
+    			</textarea>    		
     		</td>
     	</tr>
     
@@ -114,19 +117,15 @@ f("", "");
         	"Ctrl-I": function(cm) { CodeMirror.tern.showType(cm); },
   	        "Alt-.": function(cm) { CodeMirror.tern.jumpToDef(cm); },
 	        "Alt-,": function(cm) { CodeMirror.tern.jumpBack(cm); },
-	        "Ctrl-Q": function(cm) { CodeMirror.tern.rename(cm); },
-	        "Ctrl-M": function(cm) { CodeMirror.tern.comments(cm); }
+	        "Ctrl-Q": function(cm) { CodeMirror.tern.rename(cm); }
         },
         gutters: ["CodeMirror-linenumbers"],
     	textHover: {delay:300},
-    	ternWith: { plugins: {"comments-generator" : {}}}    	
+    	ternWith: { plugins: {"outline" : {}}},
+    	outline: {
+    	  node : document.getElementById("outline"),
+    	}
       });      
-      
-      /*function generateComments() {
-        CodeMirror.displayComments(editor);
-        //var pos = editor.getCursor(), server = CodeMirror.tern.getServer(editor);
-      }*/
-      
     </script>
     
   </body>

@@ -8,7 +8,7 @@
 })(function(CodeMirror) {
   "use strict";
   
-  function CommentsState(cm, options) {
+  function OutlineState(cm, options) {
     this.options = options;
     this.timeout = null;
   }
@@ -19,18 +19,16 @@
     return options;
   }
   
-  function comments(cm) {
-    //var state = cm.state.Comments;
-    //if (!state) return;
+  function displayOutline(cm) {
+    var state = cm.state.outline;
+    if (!state) return;
     var server = CodeMirror.tern.getServer(cm);
     if (!server) return;
     
-
     var query = {
-      type : "comments",
+      type : "outline",
       file : "#0",
-      lineCharPositions : true,
-      end: cm.getCursor()
+      lineCharPositions : true
     };
     
     var files = [];
@@ -46,46 +44,40 @@
     };
     server.server.request(doc, function(error, response) {
       if (error) {
-        //updateComments(state, {});
+        updateOutline(state, {});
       } else {
-        var comments = response;
-        updateComments(cm, comments);
+        var outline = response;
+        updateOutline(state, outline);
       }
     });
   }
   
-  function updateComments(cm, comments) {
-    if (comments && comments.comments) {
-      //alert(comments.comments)
-      cm.replaceRange(comments.comments, cm.getCursor(), cm.getCursor())
+  function updateOutline(state, outline) {
+    var content = JSON.stringify(outline, null, ' ');
+    if (state.options.node.value) {
+      state.options.node.value = content 
+    } else {
+      state.options.node.innerHTML = content;
     }
-//    var content = JSON.stringify(comments, null, ' ');
-//    if (state.options.node.value) {
-//      state.options.node.value = content 
-//    } else {
-//      state.options.node.innerHTML = content;
-//    }
   }
   
   function onChange(cm) {
-    var state = cm.state.Comments;
+    var state = cm.state.outline;
     if (!state) return;
     clearTimeout(state.timeout);
-    state.timeout = setTimeout(function(){displayComments(cm);}, state.options.delay || 500);
+    state.timeout = setTimeout(function(){displayOutline(cm);}, state.options.delay || 500);
   }
 
-  CodeMirror.defineOption("Comments", false, function(cm, val, old) {
+  CodeMirror.defineOption("outline", false, function(cm, val, old) {
     if (old && old != CodeMirror.Init) {
-      //cm.off("change", onChange);
+      cm.off("change", onChange);
     }
     if (val) {
-      var state = cm.state.Comments = new CommentsState(cm, parseOptions(cm, val));
-      //cm.on("change", onChange);
+      var state = cm.state.outline = new OutlineState(cm, parseOptions(cm, val));
+      cm.on("change", onChange);
     }
-    //displayComments(cm);
+    displayOutline(cm);
   });
-  
-  CodeMirror.tern.comments = comments;
   
 });
   
