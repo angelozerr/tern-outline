@@ -28,4 +28,16 @@ exports['test simple named function declaration with body'] = function() {
   });    
 }
 
+exports['test simple function expression'] = function() {
+  util.assertOutline("function b() { b(function a() {})}", {"outline":
+    [
+     {"name":"b","type":"fn()","start":0,"end":34,"children":
+       [
+        {"name":"a","type":"fn()","start":17,"end":32}
+       ]
+     }
+   ]
+  });    
+}
+
 if (module == require.main) require("test").run(exports);

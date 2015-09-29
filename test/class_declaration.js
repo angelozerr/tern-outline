@@ -16,4 +16,14 @@ exports['test simple class declaration'] = function() {
       ]});    
 }
 
+exports['test simple class expression'] = function() {
+  util.assertOutline("var cls = class {a(){} b(){}}",
+    {"outline":
+      [{"name":"cls","type":"fn()","start":0,"end":29,"kind":"class",
+       "children": [{"name":"a","type":"fn()","start":17,"end":18,"kind":"method"},
+                    {"name":"b","type":"fn()","start":23,"end":24,"kind":"method"}]
+       }]
+    });    
+}
+
 if (module == require.main) require("test").run(exports);
