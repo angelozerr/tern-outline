@@ -3,7 +3,7 @@ var util = require("./util");
 exports['test simple function declaration'] = function() {
   util.assertOutline("var a = function() {}", {"outline":
     [
-     {"name":"a","type":"fn()","start":0,"end":21,"children":[]}
+     {"name":"a","type":"fn()","start":0,"end":21}
    ]
   });    
 }
@@ -11,7 +11,7 @@ exports['test simple function declaration'] = function() {
 exports['test simple named function declaration'] = function() {
   util.assertOutline("function a() {}", {"outline":
     [
-     {"name":"a","type":"fn()","start":0,"end":15,"children":[]}
+     {"name":"a","type":"fn()","start":0,"end":15}
    ]
   });    
 }

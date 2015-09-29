@@ -1,0 +1,19 @@
+var util = require("./util");
+
+exports['test simple class declaration'] = function() {
+  util.assertOutline("class Cat { constructor(name) {"+
+        "this.name = name;"+
+      "}"+    
+      "speak() {" +
+        "console.log(this.name + ' makes a noise.');"+
+      "}"+
+    "}",
+    {"outline":
+      [{"name":"Cat","type":"fn(name: ?)","start":0,"end":103,"kind":"class",
+        "children":[{"name":"constructor","type":"fn(name: ?)","start":12,"end":23,"kind":"method"},
+                    {"name":"speak","type":"fn()","start":49,"end":54,"kind":"method"}
+                   ]}
+      ]});    
+}
+
+if (module == require.main) require("test").run(exports);
