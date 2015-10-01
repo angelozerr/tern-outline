@@ -10,7 +10,8 @@ exports['test simple class declaration'] = function() {
     "}",
     {"outline":
       [{"name":"Cat","type":"fn(name: ?)","start":0,"end":103,"kind":"class",
-        "children":[{"name":"constructor","type":"fn(name: ?)","start":12,"end":23,"kind":"method"},
+        "children":[{"name":"constructor","type":"fn(name: ?)","start":12,"end":23,"kind":"constructor",
+                     "children":[{"name":"name","type":"?","start":31,"end":40}]},
                     {"name":"speak","type":"fn()","start":49,"end":54,"kind":"method"}
                    ]}
       ]});    
