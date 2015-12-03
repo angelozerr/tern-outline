@@ -68,7 +68,7 @@
     		<td valign="top" style="width: 50%">
 <textarea id="code" name="code">function Juan() {
 }
-Juan.prototype = Object.create(window.prototype);
+Juan.prototype = Object.create(window);
 Juan.prototype.constructor = Juan;  
 Juan.prototype.hello = function () {
 };

@@ -70,6 +70,42 @@
     test_func: function() {
     }
 };
+
+
+var test_class1 = function() {
+  this.public_func = private_func;
+
+  function private_func() {
+
+  }
+};
+
+var test_class2;
+(function() {
+  test_class2 = function() {
+    function private_function() {
+    }
+  };
+
+  test_class2.prototype = {
+      proto_func: function() {
+      }
+  };
+})();
+
+var test_obj3;
+(function() {
+  var test_class3 = function() {
+    function private_function() {
+    }
+  }
+
+  test_class3.prototype = {
+      proto_func: function() {
+      }
+  };
+  test_obj3 = new test_class3();  
+})();
 </textarea>    		
     		</td>
     		<td valign="top">

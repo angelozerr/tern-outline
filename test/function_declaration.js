@@ -61,4 +61,69 @@ exports['test anonymous function'] = function() {
   });    
 }
 
+exports['test all function case'] = function() {
+  
+  util.assertOutline("function f() {var i=0;}", {"outline":
+    [
+     {"name":"f","type":"fn()","start":9,"end":10,"children":
+       [
+        {"name":"i","type":"number","start":18,"end":19}
+       ]           
+     }
+   ]
+  });
+  
+  util.assertOutline("var f = function () {var i=0;}", {"outline":
+    [
+     {"name":"f","type":"fn()","start":4,"end":5,"children":
+       [
+        {"name":"i","type":"number","start":25,"end":26}
+       ]           
+     }
+   ]
+  });
+  
+  util.assertOutline("function g() {this.f = function () {var i=0;}}", {"outline":
+    [
+     {"name":"g","type":"fn()","start":9,"end":10,"children":
+       [
+        {"name":"f","type":"?","start":14,"end":20,"children":
+          [
+           {"name":"i","type":"number","start":40,"end":41}
+          ]           
+        }
+       ]
+     }
+   ]
+  }); 
+
+  util.assertOutline("var o = {'f': function () {var i=0;}}", {"outline":
+    [
+     {"name":"o","type":"o","start":4,"end":5,"children":
+       [
+        {"name":"f","type":"fn()","start":9,"end":12,"children":
+          [
+           {"name":"i","type":"number","start":31,"end":32}
+          ]           
+        }
+       ]
+     }
+   ]
+  });
+  
+  util.assertOutline("class c {f() {var i=0;}}", {"outline":
+    [
+     {"name":"c","type":"fn()","start":0,"end":24,"kind": "class", "children":
+       [
+        {"name":"f","type":"fn()","start":9,"end":10,"kind": "method", "children":
+          [
+           {"name":"i","type":"number","start":18,"end":19}
+          ]           
+        }
+       ]
+     }
+   ]
+  });  
+}
+
 if (module == require.main) require("test").run(exports);

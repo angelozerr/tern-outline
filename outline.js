@@ -74,6 +74,39 @@
     });*/  
   });  
   
+  function getChild(parent, name) {
+    var children = parent.children;
+    if (!children) return null;
+    for (var i = 0; i < children.length; i++) {
+      var child = children[i];
+      if (child.name == name) return child;
+    }
+  }
+  
+  function fillTypes(type, parent, excludeTypes) {
+    if (!type) return;
+    excludeTypes.push(type);
+    infer.forAllPropertiesOf(type, function(prop, obj, depth) {
+      if (depth > 0) return;
+      var t = obj && obj.props[prop];
+      if (t && t.originNode && t.originNode.type != "ClassDeclaration" && excludeTypes.indexOf(t) == -1) {
+        excludeTypes.push(t);
+        var child = getChild(parent, prop);
+        if (!child) {
+          child = addChildNode(t.originNode, t, parent);
+        }
+        fillTypes(t, child, excludeTypes);
+      }
+    })
+  }
+  
+  function addAnonymousFn(node, type, parent) {
+    var child = addChildNode(node.body, type, parent);
+    child.name = ANONYMOUS_FN;
+    if (child.type == "?") child.type = "fn()";
+    return child;
+  }
+  
   // Adapted from infer.searchVisitor.
   // Record the scope and pass it through in the state.
   // VariableDeclaration in infer.searchVisitor breaks things for us.
@@ -91,29 +124,35 @@
         c(decl, scope);
       }
     },
-    AssignmentExpression: function (node, st) {
+    AssignmentExpression: function (node, st, c) {
+      var parent = st.parent, scope = st.scope;
       if(node.left && node.left.object && node.left.object.type == "ThisExpression") {
         var parent = st.parent, scope = st.scope;
         var type = infer.expressionType({node: node.left, state: scope});
-        addChildNode(node.left, type, parent);
+        var child = addChildNode(node.left, type, parent);
+        st = {parent: child, scope: scope};
       }
+      c(node.left, st, "Pattern");
+      c(node.right, st, "Expression");
     },
     Function: function(node, st, c) {
       var parent = st.parent, scope = st.scope, type = infer.expressionType({node: node.id && node.type != "FunctionExpression" ? node.id : node, state: scope});
       if (node.id) {
         if (node.id.name == "✖") {
-          parent = addChildNode(node.body, type, parent);
-          parent.name = ANONYMOUS_FN;
-          if (parent.type == "?") parent.type = "fn()";
+          parent = addAnonymousFn(node, type, parent);
         } else {
           parent = addChildNode(node.id, type, parent); 
         }
+      } else {
+        var parentNode = infer.parentNode(node, node.sourceFile.ast);
+        if (!parentNode || (parentNode.type != "Property" && parentNode.type != "VariableDeclarator" && parentNode.type != "MethodDefinition" && parentNode.type != "AssignmentExpression")) parent = addAnonymousFn(node, type, parent);
       }
       var scope = {parent: parent, scope: node.body.scope ? node.body.scope: node.scope};
       if (node.id) c(node.id, scope);
       for (var i = 0; i < node.params.length; ++i)
         c(node.params[i], scope);
       c(node.body, scope, "ScopeBody");
+      fillTypes(type, parent, []);
     },
     Property: function (node, st, c) {
       var parent = st.parent, scope = st.scope;
