@@ -14,20 +14,6 @@
     suboutlines[id] = {label: label || id, fillOutline: fillOutline};
   };
   
-  function isObjectLiteral(type) {
-    var objType = type.getObjType();
-    return objType && objType.proto && objType.proto.name == "Object.prototype"; 
-  }
-
-  function isFunctionType(type) {
-    if (type.types) {
-      for (var i = 0; i < type.types.length; i++) {
-        if (isFunctionType(type.types[i])) return true;
-      }
-    }
-    return type.proto && type.proto.name == "Function.prototype";
-  }
-  
   function getNodeName(node) {
     if(node.callee) {
       // This is a CallExpression node.
@@ -49,8 +35,6 @@
 
   function getStringType(type) {
     if (!type) return "?";
-    //if (isObjectLiteral(type)) return "{}";
-    //if (isFunctionType(type)) return "fn()";
     return type.toString();
   }
   
@@ -77,41 +61,7 @@
   }
   
   function makeVisitors(server, query, file) {
-    return {
-      VariableDeclaration: function (node, st) {
-        for (var i = 0, len = node.declarations.length; i < len; i++) {
-          var decl = node.declarations[i];
-          var parent = st.parent, scope = st.scope, type = infer.expressionType({node: decl.id, state: scope}), child;
-          if (isObjectLiteral(type) || isFunctionType(type)) {
-            var obj = parent[parent.length -1];
-            if (obj) {
-              obj.name = getNodeName(decl.id);
-              obj.start = Number(node.start);
-              obj.end = Number(node.end);
-            } else {
-              child = addChildNode(decl.id, type, parent);
-            }
-          } else {
-            child = addChildNode(decl.id, type, parent);
-          }
-          if (child && node.kind) {
-            // is it interesting to have var, const, let kind?
-            // child.kind = node.kind; 
-          }
-        }
-      },
-      Property: function (node, st) {
-        var parent = st.parent, scope = st.scope;
-        var type = node.value && node.value.name != "✖" ? infer.expressionType({node: node.value, state: scope}) : null;
-        addChildNode(node.key, type, parent);
-      },
-      AssignmentExpression: function (node, st) {
-        if(node.left && node.left.object && node.left.object.type == "ThisExpression") {
-          var parent = st.parent, scope = st.scope;
-          var type = infer.expressionType({node: node.left, state: scope});
-          addChildNode(node.left, type, parent);
-        }
-      }      
+    return {      
     }
   }
   
@@ -124,49 +74,75 @@
     });*/  
   });  
   
-  var classDeclaration = function (node, st, c) {
-    var parent = st.parent, scope = st.scope, type = infer.expressionType({node: node.id ? node.id : node, state: scope});
-    var obj = addChildNode(node, type, parent);
-    obj.kind = "class";
-    var scope = {parent: obj, scope: st.scope};
-    if (node.superClass) c(node.superClass, scope, "Expression");
-    for (var i = 0; i < node.body.body.length; i++) {
-      c(node.body.body[i], scope);
-    }
-  };
-  
   // Adapted from infer.searchVisitor.
   // Record the scope and pass it through in the state.
   // VariableDeclaration in infer.searchVisitor breaks things for us.
   var scopeVisitor = walk.make({
+    VariableDeclaration: function (node, st, c) {
+      for (var i = 0, len = node.declarations.length; i < len; i++) {
+        var decl = node.declarations[i];
+        var parent = st.parent, scope = st.scope, type = infer.expressionType({node: decl.id, state: scope});
+        var child = addChildNode(decl.id, type, parent);
+        if (child && node.kind) {
+          // is it interesting to have var, const, let kind?
+          // child.kind = node.kind; 
+        }
+        var scope = {parent: child, scope: st.scope};
+        c(decl, scope);
+      }
+    },
+    AssignmentExpression: function (node, st) {
+      if(node.left && node.left.object && node.left.object.type == "ThisExpression") {
+        var parent = st.parent, scope = st.scope;
+        var type = infer.expressionType({node: node.left, state: scope});
+        addChildNode(node.left, type, parent);
+      }
+    },
     Function: function(node, st, c) {
       var parent = st.parent, scope = st.scope, type = infer.expressionType({node: node.id && node.type != "FunctionExpression" ? node.id : node, state: scope});
-      if (!st.ignoreFirstFn) {
-        var fn = addChildNode(node, type, parent);
-        if (!node.id) fn.name = ANONYMOUS_FN;
-        parent = fn;
-      } else delete(st.ignoreFirstFn);
-      var scope = {parent: parent, scope: node.scope};
+      if (node.id) {
+        if (node.id.name == "✖") {
+          parent = addChildNode(node.body, type, parent);
+          parent.name = ANONYMOUS_FN;
+          if (parent.type == "?") parent.type = "fn()";
+        } else {
+          parent = addChildNode(node.id, type, parent); 
+        }
+      }
+      var scope = {parent: parent, scope: node.body.scope ? node.body.scope: node.scope};
       if (node.id) c(node.id, scope);
       for (var i = 0; i < node.params.length; ++i)
         c(node.params[i], scope);
       c(node.body, scope, "ScopeBody");
     },
-    ObjectExpression: function (node, st, c) {
+    Property: function (node, st, c) {
+      var parent = st.parent, scope = st.scope;
+      var type = node.value && node.value.name != "✖" ? infer.expressionType({node: node.value, state: scope}) : null;
+      parent = addChildNode(node.key, type, parent);
+      var scope = {parent: parent, scope: node.scope};
+      if (node.computed) c(node.key, scope, "Expression");
+      c(node.value, scope, "Expression");
+    },
+    ClassExpression: function(node, st, c) {
+      st.parent.kind = "class";
+      return c(node, st, "Class");
+    },
+    ClassDeclaration: function (node, st, c) {
       var parent = st.parent, scope = st.scope, type = infer.expressionType({node: node.id ? node.id : node, state: scope});
       var obj = addChildNode(node, type, parent);
+      obj.kind = "class";
       var scope = {parent: obj, scope: st.scope};
-      for (var i = 0; i < node.properties.length; ++i)
-        c(node.properties[i], scope);
+      if (node.superClass) c(node.superClass, scope, "Expression");
+      for (var i = 0; i < node.body.body.length; i++) {
+        c(node.body.body[i], scope);
+      }
     },
-    ClassExpression: classDeclaration,
-    ClassDeclaration: classDeclaration,
     MethodDefinition: function (node, st, c) {
       var parent = st.parent, scope = st.scope;
       var type = node.value && node.value.name != "✖" ? infer.expressionType({node: node.value, state: scope}) : null;
       var meth = addChildNode(node.key, type, parent);
       meth.kind = node.kind;
-      var scope = {parent: meth, scope: st.scope, ignoreFirstFn: true};
+      var scope = {parent: meth, scope: st.scope};
       if (node.computed) c(node.key, scope, "Expression");
       c(node.value, scope, "Expression");
     },

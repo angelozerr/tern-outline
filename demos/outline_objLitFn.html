@@ -66,18 +66,9 @@
     <table style="width: 100%;height: 500px">
     	<tr>
     		<td valign="top" style="width: 50%">
-<textarea id="code" name="code">function Juan() {
-}
-Juan.prototype = Object.create(window.prototype);
-Juan.prototype.constructor = Juan;  
-Juan.prototype.hello = function () {
-};
-
-function Maria() {
-}
-Maria.prototype = Object.create(Juan.prototype);
-Maria.prototype.constructor = Maria;  
-Maria.prototype.hola = function () {
+<textarea id="code" name="code">var test_obj = {
+    test_func: function() {
+    }
 };
 </textarea>    		
     		</td>
