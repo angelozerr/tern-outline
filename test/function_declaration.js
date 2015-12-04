@@ -87,7 +87,7 @@ exports['test all function case'] = function() {
     [
      {"name":"g","type":"fn()","start":9,"end":10,"children":
        [
-        {"name":"f","type":"?","start":14,"end":20,"children":
+        {"name":"f","type":"?","start":19,"end":20,"children":
           [
            {"name":"i","type":"number","start":40,"end":41}
           ]           
@@ -113,7 +113,7 @@ exports['test all function case'] = function() {
   
   util.assertOutline("class c {f() {var i=0;}}", {"outline":
     [
-     {"name":"c","type":"fn()","start":0,"end":24,"kind": "class", "children":
+     {"name":"c","type":"fn()","start":6,"end":7,"kind": "class", "children":
        [
         {"name":"f","type":"fn()","start":9,"end":10,"kind": "method", "children":
           [
@@ -124,6 +124,21 @@ exports['test all function case'] = function() {
      }
    ]
   });  
+}
+
+exports['test prototype properties function'] = function() {
+  util.assertOutline("function Juan() {};Juan.prototype = Object.create(window);Juan.prototype.constructor = Juan;Juan.prototype.hello = function () {var j = 0;};", 
+      {"outline":
+        [{"name":"Juan","type":"fn()","start":9,"end":13,
+          "children":[{"name":"prototype","type":"?","start":24,"end":33,
+                       "children":[{"name":"constructor","type":"?","start":73,"end":84},
+                                   {"name":"hello","type":"?","start":107,"end":112,
+                                    "children":[{"name":"j","type":"number","start":132,"end":133}]
+                                   }
+                                  ]
+                     }]
+        }]}
+   );    
 }
 
 if (module == require.main) require("test").run(exports);
