@@ -1,4 +1,4 @@
-var util = require("./util");
+var util = require("../util");
 
 exports['test simple class declaration'] = function() {
   util.assertOutline("class Cat { constructor(name) {"+
