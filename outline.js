@@ -39,7 +39,7 @@
   }
   
   function addChildNode(node, type, children) {
-    if (!node || node.name == "✖") { return; }
+    if (!node || node.name == "✖") return;
     return addChild(getNodeName(node), getStringType(type), children, Number(node.start), Number(node.end));
   }
   
@@ -127,8 +127,7 @@
         var child = addChildNode(left, type, parent);
         st = {parent: child, scope: scope};
       }
-      c(node.left, st, "Pattern");
-      c(node.right, st, "Expression");
+      walk.base.AssignmentExpression(node, st, c);
     },
     Function: function(node, st, c) {
       var parent = st.parent, scope = st.scope, type = infer.expressionType({node: node.id && node.type != "FunctionExpression" ? node.id : node, state: scope});
@@ -145,18 +144,14 @@
         }
       }
       var scope = {parent: parent, scope: node.body.scope ? node.body.scope: node.scope};
-      if (node.id) c(node.id, scope);
-      for (var i = 0; i < node.params.length; ++i)
-        c(node.params[i], scope);
-      c(node.body, scope, "ScopeBody");
+      walk.base.Function(node, scope, c);
     },
     Property: function (node, st, c) {
       var parent = st.parent, scope = st.scope;
       var type = node.value && node.value.name != "✖" ? infer.expressionType({node: node.value, state: scope}) : null;
       parent = addChildNode(node.key, type, parent);
       var scope = {parent: parent, scope: scope};
-      if (node.computed) c(node.key, scope, "Expression");
-      c(node.value, scope, "Expression");
+      walk.base.Property(node, scope, c);
     },
     ClassExpression: function(node, st, c) {
       st.parent.kind = "class";
@@ -165,12 +160,10 @@
     ClassDeclaration: function (node, st, c) {
       var parent = st.parent, scope = st.scope, type = infer.expressionType({node: node.id ? node.id : node, state: scope});
       var obj = addChildNode(node.id ? node.id : node, type, parent);
+      if (!obj) return;
       obj.kind = "class";
       var scope = {parent: obj, scope: st.scope};
-      if (node.superClass) c(node.superClass, scope, "Expression");
-      for (var i = 0; i < node.body.body.length; i++) {
-        c(node.body.body[i], scope);
-      }
+      walk.base.ClassDeclaration(node, scope, c);
     },
     MethodDefinition: function (node, st, c) {
       var parent = st.parent, scope = st.scope;
@@ -178,17 +171,14 @@
       var meth = addChildNode(node.key, type, parent);
       meth.kind = node.kind;
       var scope = {parent: meth, scope: st.scope};
-      if (node.computed) c(node.key, scope, "Expression");
-      c(node.value, scope, "Expression");
+      walk.base.MethodDefinition(node, scope, c);
     },
     ImportDeclaration: function (node, st, c) {
       var parent = st.parent, scope = st.scope;
       var imp = addChildNode(node, null, parent);
       imp.kind = "import";
       var scope = {parent: imp, scope: st.scope};
-      for (var i = 0; i < node.specifiers.length; i++) {
-        c(node.specifiers[i], scope);
-      }c(node.source, scope, "Expression");
+      walk.base.ImportDeclaration(node, scope, c);
     },
     ImportSpecifier: function (node, st, c) {
       var parent = st.parent, scope = st.scope;
